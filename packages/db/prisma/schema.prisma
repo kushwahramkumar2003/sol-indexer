@@ -1,0 +1,220 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [pgcrypto, uuid_ossp]
+}
+
+enum Role {
+  USER
+  ADMIN
+  SERVICE
+}
+
+enum IndexingCategory {
+  NFT_BIDS
+  NFT_PRICES
+  TOKEN_BORROW
+  TOKEN_PRICES
+  TRANSACTIONS
+}
+
+enum BlockchainNetwork {
+  SOLANA_MAINNET
+  SOLANA_DEVNET
+}
+
+enum TokenStandard {
+  SPL
+  SPL_ASSOCIATED_TOKEN
+  NFT
+  NFT_COLLECTION
+}
+
+model User {
+  id                  String              @id @default(uuid())
+  email               String              @unique
+  passwordHash        String
+  roles               Role[]              @default([USER])
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  databaseCredentials DatabaseCredential[]
+  configurations      IndexingConfiguration[]
+  alerts              Alert[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model DatabaseCredential {
+  id          String   @id @default(uuid())
+  userId      String
+  host        String   @db.VarChar(255)
+  port        Int      @default(5432)
+  database    String   @db.VarChar(255)
+  username    String   @db.VarChar(255)
+  password    String   @db.VarChar(255)
+  ssl         Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, host, database])
+  @@map("database_credentials")
+}
+
+model IndexingConfiguration {
+  id                 String             @id @default(uuid())
+  userId             String
+  name               String
+  categories         IndexingCategory[]
+  network            BlockchainNetwork @default(SOLANA_MAINNET)
+  enabled            Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions       Transaction[]
+  nfts               NFT[]
+  tokens             Token[]
+  marketData         MarketData[]
+  syncLogs           DataSyncLog[]
+
+  @@index([userId])
+  @@map("indexing_configurations")
+}
+
+model Transaction {
+  id          String      @id @default(uuid())
+  configId    String
+  txHash      String      @db.VarChar(255)
+  blockNumber BigInt
+  timestamp   DateTime
+  fee         Decimal     @default(0)
+  success     Boolean
+  accounts    String[]
+  logs        String[]
+  config      IndexingConfiguration @relation(fields: [configId], references: [id], onDelete: Cascade)
+  events      Event[]
+
+  @@index([txHash])
+  @@index([blockNumber])
+  @@index([timestamp])
+  @@map("transactions")
+}
+
+model Event {
+  id            String      @id @default(uuid())
+  transactionId String
+  type          String      @db.VarChar(255)
+  data          Json
+  timestamp     DateTime
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([type])
+  @@map("events")
+}
+
+model NFT {
+  id              String      @id @default(uuid())
+  configId        String
+  mintAddress     String      @db.VarChar(255)
+  ownerAddress    String      @db.VarChar(255)
+  metadataUri     String?
+  name            String?
+  symbol          String?
+  standard        TokenStandard
+  attributes      Json?
+  currentPrice    Decimal?
+  lastUpdated     DateTime
+  config          IndexingConfiguration @relation(fields: [configId], references: [id], onDelete: Cascade)
+  marketData      MarketData[]
+
+  @@index([mintAddress])
+  @@index([ownerAddress])
+  @@map("nfts")
+}
+
+model Token {
+  id           String      @id @default(uuid())
+  configId     String
+  mintAddress  String      @db.VarChar(255)
+  name         String
+  symbol       String
+  decimals     Int
+  price        Decimal
+  platform     String
+  lastUpdated  DateTime
+  config       IndexingConfiguration @relation(fields: [configId], references: [id], onDelete: Cascade)
+  marketData   MarketData[]
+
+  @@index([mintAddress])
+  @@index([symbol])
+  @@map("tokens")
+}
+
+model MarketData {
+  id           String      @id @default(uuid())
+  configId     String
+  nftId        String?
+  tokenId      String?
+  type         String      @db.VarChar(50) // BID, ASK, LOAN
+  price        Decimal
+  quantity     Decimal
+  ownerAddress String
+  expiry       DateTime?
+  createdAt    DateTime    @default(now())
+  config       IndexingConfiguration @relation(fields: [configId], references: [id], onDelete: Cascade)
+  nft          NFT?        @relation(fields: [nftId], references: [id])
+  token        Token?      @relation(fields: [tokenId], references: [id])
+
+  @@index([type])
+  @@index([ownerAddress])
+  @@map("market_data")
+}
+
+model DataSyncLog {
+  id            String      @id @default(uuid())
+  configId      String
+  startTime     DateTime
+  endTime       DateTime?
+  itemsSynced   Int
+  success       Boolean     @default(false)
+  errorMessage  String?
+  config        IndexingConfiguration @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([startTime])
+  @@map("data_sync_logs")
+}
+
+model SystemLog {
+  id          String   @id @default(uuid())
+  level       String   @db.VarChar(20) // INFO, WARN, ERROR
+  message     String
+  context     Json?
+  timestamp   DateTime @default(now())
+
+  @@index([level])
+  @@index([timestamp])
+  @@map("system_logs")
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String   @db.VarChar(50) // SYNC_FAILURE, PRICE_ALERT
+  message     String
+  resolved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@map("alerts")
+}
