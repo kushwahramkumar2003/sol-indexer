@@ -1,0 +1,18 @@
+{
+  "name": "data-processor",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "db": "*"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "prom-client": "^15.1.3",
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
+  }
+}
