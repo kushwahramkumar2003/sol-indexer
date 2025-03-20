@@ -1,0 +1,26 @@
+[package]
+name = "db-writer"
+version = "0.1.0"
+edition = "2021"   # Fixed from "2024" to the latest valid edition
+
+[dependencies]
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.7", features = [
+    "runtime-tokio-rustls",
+    "postgres",
+    "uuid",
+    "chrono",
+    "json",
+] }
+rdkafka = { version = "0.37.0", features = ["cmake-build", "ssl-vendored"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+env_logger = "0.11"
+num_cpus = "1.16.0"
+dotenv = "0.14.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["test-util"] }
