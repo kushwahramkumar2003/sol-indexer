@@ -1,14 +1,12 @@
-// prisma/schema.prisma
-
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  // previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [pgcrypto, uuid_ossp]
+  // extensions = [pgcrypto]
 }
 
 enum Role {

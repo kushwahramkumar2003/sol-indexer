@@ -1,9 +1,3 @@
--- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
--- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "uuid_ossp";
-
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN', 'SERVICE');
 
@@ -169,6 +163,18 @@ CREATE TABLE "alerts" (
     CONSTRAINT "alerts_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "webhook_registrations" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "configurationId" TEXT NOT NULL,
+    "webhookPath" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "webhook_registrations_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
@@ -226,6 +232,15 @@ CREATE INDEX "alerts_userId_idx" ON "alerts"("userId");
 -- CreateIndex
 CREATE INDEX "alerts_type_idx" ON "alerts"("type");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "webhook_registrations_webhookPath_key" ON "webhook_registrations"("webhookPath");
+
+-- CreateIndex
+CREATE INDEX "webhook_registrations_userId_idx" ON "webhook_registrations"("userId");
+
+-- CreateIndex
+CREATE INDEX "webhook_registrations_webhookPath_idx" ON "webhook_registrations"("webhookPath");
+
 -- AddForeignKey
 ALTER TABLE "database_credentials" ADD CONSTRAINT "database_credentials_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -258,3 +273,9 @@ ALTER TABLE "data_sync_logs" ADD CONSTRAINT "data_sync_logs_configId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "alerts" ADD CONSTRAINT "alerts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "webhook_registrations" ADD CONSTRAINT "webhook_registrations_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "webhook_registrations" ADD CONSTRAINT "webhook_registrations_configurationId_fkey" FOREIGN KEY ("configurationId") REFERENCES "indexing_configurations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
