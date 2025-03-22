@@ -38,6 +38,8 @@ export const authMiddleware = (
         ? req.headers.authorization.split(" ")[1]
         : undefined);
 
+    console.log("Token:", token);
+
     // Check if token exists
     if (!token) {
       return res
@@ -48,9 +50,11 @@ export const authMiddleware = (
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
-    // Set userId in request object
-    req.userId = decoded.userId;
+    console.log("Decoded token:", decoded);
 
+    // Set userId in request object
+    req.userId = decoded.id;
+    console.log("req.userId:", req.userId);
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

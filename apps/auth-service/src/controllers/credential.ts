@@ -1,20 +1,27 @@
 import prisma from "db/client";
 import type { Request, Response } from "express";
+import {
+  createDatabaseCredentials,
+  updateDatabaseCredentialsSchema,
+} from "types";
 
-export const addDatabaseCredentials = async (req: Request, res: Response) => {
+export const addDatabaseCredentials = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const { userId, host, port, database, username, password, ssl } = req.body;
-    if (
-      !userId ||
-      !host ||
-      !port ||
-      !database ||
-      !username ||
-      !password ||
-      !ssl
-    ) {
-      return res.status(400).send("All fields are required");
+    const parsedData = createDatabaseCredentials.safeParse(req.body);
+    if (!parsedData.success) {
+      res.status(400).json({
+        message: "Invalid input data",
+        errors: parsedData.error.errors,
+      });
+      return;
     }
+
+    const { userId, host, port, database, username, password, ssl } =
+      parsedData.data;
+
     const dbCredentials = await prisma.databaseCredential.create({
       data: {
         userId,
@@ -23,96 +30,206 @@ export const addDatabaseCredentials = async (req: Request, res: Response) => {
         database,
         username,
         password,
-        ssl,
+        ssl: ssl ?? false,
       },
     });
-    return res.status(201).json(dbCredentials);
+
+    res.status(201).json({
+      success: true,
+      data: dbCredentials,
+    });
   } catch (error) {
-    return res.status(500).send("Something went wrong");
+    console.error("Error adding database credentials:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 
 export const getDatabaseCredentialsById = async (
   req: Request,
   res: Response
-) => {
+): Promise<void> => {
   try {
     const id = req.query.id as string;
     if (!id) {
-      return res.status(400).send("ID is required");
+      res.status(400).json({
+        success: false,
+        message: "ID is required",
+      });
+      return;
     }
+
     const dbCredentials = await prisma.databaseCredential.findUnique({
-      where: {
-        id,
-      },
+      where: { id },
     });
-    return res.status(200).json(dbCredentials);
+
+    if (!dbCredentials) {
+      res.status(404).json({
+        success: false,
+        message: "Database credentials not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: dbCredentials,
+    });
   } catch (error) {
-    return res.status(500).send("Something went wrong");
+    console.error("Error fetching database credentials by ID:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 
-export const getDatabaseCredentials = async (req: Request, res: Response) => {
+export const getDatabaseCredentials = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const userId = req.query.userId as string;
     if (!userId) {
-      return res.status(400).send("User ID is required");
+      res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+      return;
     }
-    const dbCredentials = await prisma.databaseCredential.findMany({
-      where: {
-        userId,
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const [dbCredentials, total] = await Promise.all([
+      prisma.databaseCredential.findMany({
+        where: { userId },
+        skip,
+        take: limit,
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.databaseCredential.count({
+        where: { userId },
+      }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: dbCredentials,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
       },
     });
-    return res.status(200).json(dbCredentials);
   } catch (error) {
-    return res.status(500).send("Something went wrong");
+    console.error("Error fetching database credentials:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 
 export const deleteDatabaseCredentials = async (
   req: Request,
   res: Response
-) => {
+): Promise<void> => {
   try {
     const id = req.query.id as string;
     if (!id) {
-      return res.status(400).send("ID is required");
+      res.status(400).json({
+        success: false,
+        message: "ID is required",
+      });
+      return;
     }
-    await prisma.databaseCredential.delete({
-      where: {
-        id,
-      },
+
+    const existingCredential = await prisma.databaseCredential.findUnique({
+      where: { id },
     });
-    return res.status(200).send("Database credentials deleted");
+
+    if (!existingCredential) {
+      res.status(404).json({
+        success: false,
+        message: "Database credentials not found",
+      });
+      return;
+    }
+
+    await prisma.databaseCredential.delete({
+      where: { id },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Database credentials deleted successfully",
+    });
   } catch (error) {
-    return res.status(500).send("Something went wrong");
+    console.error("Error deleting database credentials:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 
 export const updateDatabaseCredentials = async (
   req: Request,
   res: Response
-) => {
+): Promise<void> => {
   try {
-    const { id, host, port, database, username, password, ssl } = req.body;
-    if (!id || !host || !port || !database || !username || !password || !ssl) {
-      return res.status(400).send("All fields are required");
+    const parsedData = updateDatabaseCredentialsSchema.safeParse(req.body);
+    if (!parsedData.success) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid input data",
+        errors: parsedData.error.errors,
+      });
+      return;
     }
-    await prisma.databaseCredential.update({
-      where: {
-        id,
-      },
+
+    const { id, host, port, database, username, password, ssl } =
+      parsedData.data;
+
+    const existingCredential = await prisma.databaseCredential.findUnique({
+      where: { id },
+    });
+
+    if (!existingCredential) {
+      res.status(404).json({
+        success: false,
+        message: "Database credentials not found",
+      });
+      return;
+    }
+
+    const updatedCredentials = await prisma.databaseCredential.update({
+      where: { id },
       data: {
         host,
         port,
         database,
         username,
         password,
-        ssl,
+        ssl: ssl ?? false,
       },
     });
-    return res.status(200).send("Database credentials updated");
+
+    res.status(200).json({
+      success: true,
+      message: "Database credentials updated successfully",
+      data: updatedCredentials,
+    });
   } catch (error) {
-    return res.status(500).send("Something went wrong");
+    console.error("Error updating database credentials:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };

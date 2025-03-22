@@ -1,55 +1,114 @@
 import db from "db/client";
 import bcrypt from "bcrypt";
 import type { Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { type Secret } from "jsonwebtoken";
+import { loginSchema, signUpSchema } from "types";
+import { StatusCodes } from "http-status-codes";
 
-export const signUp = async (req: Request, res: Response) => {
+const JWT_SECRET = process.env.JWT_SECRET || ("secret" as Secret);
+const JWT_EXPIRY = process.env.JWT_EXPIRY || "24h";
+const SALT_ROUNDS = 12;
+
+export const signUp = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const parsedData = signUpSchema.safeParse(req.body);
 
-    if (!email || !password) {
-      return res.status(400).send("Email and password are required");
+    if (!parsedData.success) {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        message: "Invalid input data",
+        errors: parsedData.error.errors,
+      });
+      return;
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const { email, password } = parsedData.data;
+
+    const existingUser = await db.user.findUnique({ where: { email } });
+    if (existingUser) {
+      res
+        .status(StatusCodes.CONFLICT)
+        .json({ message: "Email already in use" });
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     const user = await db.user.create({
       data: {
         email,
         passwordHash: hashedPassword,
       },
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
+      },
     });
 
-    return res.status(201).json(user);
-  } catch (error) {}
+    res.status(StatusCodes.CREATED).json({
+      message: "User created successfully",
+      user,
+    });
+  } catch (error) {
+    console.error("Sign up error:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      message: "An error occurred during registration",
+    });
+  }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const parsedData = loginSchema.safeParse(req.body);
 
-    if (!email || !password) {
-      return res.status(400).send("Email and password are required");
+    if (!parsedData.success) {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        message: "Invalid input data",
+        errors: parsedData.error.errors,
+      });
+      return;
     }
 
+    const { email, password } = parsedData.data;
+
     const user = await db.user.findUnique({
-      where: {
-        email,
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
       },
     });
 
     if (!user) {
-      return res.status(404).send("User not found");
+      res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: "Invalid credentials" });
+      return;
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
     if (!isPasswordValid) {
-      return res.status(401).send("Invalid password");
+      res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: "Invalid credentials" });
+      return;
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || "secret");
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
 
-    return res.status(200).json({ token });
-  } catch (error) {}
+    res.status(StatusCodes.OK).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      message: "An error occurred during login",
+    });
+  }
 };
