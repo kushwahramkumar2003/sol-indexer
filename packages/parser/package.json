@@ -1,0 +1,13 @@
+{
+  "name": "parser",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "exports": "./src/index.ts",
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
