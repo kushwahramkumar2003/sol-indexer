@@ -1,4 +1,3 @@
-// types/webhook.ts
 import type {
   IndexingCategory,
   BlockchainNetwork,

@@ -4,18 +4,23 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun src/index.ts",
+    "dev": "bun  src/index.ts -watch",
     "start": "bun dist/index.js",
     "build": "bunx tsc -b"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "db": "*"
+    "db": "*",
+    "logger": "*",
+    "parser": "*"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "kafkajs": "^2.2.4"
+    "@types/cors": "^2.8.17",
+    "cors": "^2.8.5",
+    "kafkajs": "^2.2.4",
+    "winston": "^3.17.0"
   }
 }

@@ -1,4 +1,3 @@
-// utils/encryption.ts
 import type { DatabaseCredential } from "@prisma/client";
 import crypto from "crypto";
 import { config } from "../config";
@@ -34,7 +33,6 @@ export function decryptCredentials(encryptedData: {
 }): DatabaseCredential {
   const iv = Buffer.from(encryptedData.iv, "base64");
 
-  // Split the encrypted data and auth tag
   const parts = encryptedData.encrypted.split(".");
   if (parts.length !== 2) {
     throw new Error("Invalid encrypted data format");

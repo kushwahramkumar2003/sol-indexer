@@ -7,6 +7,12 @@ export const config = {
   kafka: {
     broker: process.env.KAFKA_BROKER!,
     ssl: process.env.KAFKA_SSL === "true",
+    topic: process.env.KAFKA_TOPIC!,
+    clientId: process.env.KAFKA_CLIENT_ID || "webhook-service",
+    groupId: process.env.KAFKA_GROUP_ID || "sol-indexer",
+    username: process.env.KAFKA_USERNAME,
+    password: process.env.KAFKA_PASSWORD,
+    mechanism: process.env.KAFKA_MECHANISM,
   },
   encryptionKey: process.env.ENCRYPTION_KEY!,
   database: {

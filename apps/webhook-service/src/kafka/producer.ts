@@ -1,4 +1,5 @@
 import { Kafka, type Producer, type ProducerRecord } from "kafkajs";
+import fs from "fs";
 import { config } from "../config";
 import { log } from "../utils/logger";
 
@@ -7,9 +8,25 @@ class KafkaProducer {
 
   constructor() {
     const kafka = new Kafka({
-      clientId: "webhook-service",
+      clientId: config.kafka.clientId,
       brokers: [config.kafka.broker],
-      ssl: config.kafka.ssl,
+      ssl: {
+        // rejectUnauthorized: false,
+        ca: [
+          fs.readFileSync(
+            "/mnt/Data/Language-Play-Ground/Projects/MERN/my/sol-indexer/kafka_ca.pem",
+            "utf-8"
+          ),
+        ],
+      },
+      sasl:
+        config.kafka.username && config.kafka.password
+          ? {
+              mechanism: "plain",
+              username: config.kafka.username,
+              password: config.kafka.password,
+            }
+          : undefined,
     });
 
     this.producer = kafka.producer();
