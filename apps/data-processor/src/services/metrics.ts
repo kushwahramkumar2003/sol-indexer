@@ -1,4 +1,3 @@
-// src/services/metrics.ts
 import { Counter, Histogram, Registry } from "prom-client";
 import { createServer } from "http";
 import { logger } from "../utils/logger";
@@ -14,7 +13,6 @@ export class MetricsService {
     this.counters = new Map();
     this.histograms = new Map();
 
-    // Initialize standard metrics
     this.createCounter(
       "events_received_total",
       "Total number of events received",

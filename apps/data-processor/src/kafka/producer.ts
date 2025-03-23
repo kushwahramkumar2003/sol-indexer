@@ -26,6 +26,7 @@ export async function sendProcessedEvent(
   event: ProcessedEvent,
   retry = 0
 ): Promise<void> {
+  console.log("sendProcessedEvent", event);
   const maxRetries = config.processing.maxRetries;
   const startTime = Date.now();
 
@@ -40,7 +41,8 @@ export async function sendProcessedEvent(
     };
 
     await producer.send({
-      topic: config.kafka.outputTopic,
+      // topic: config.kafka.outputTopic,
+      topic: "processed-events",
       compression: CompressionTypes.GZIP,
       messages: [message],
     });

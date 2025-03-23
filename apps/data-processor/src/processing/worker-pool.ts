@@ -1,8 +1,5 @@
-// src/processing/worker-pool.ts
 import {
   PrismaClient,
-  IndexingCategory,
-  BlockchainNetwork,
 } from "@prisma/client";
 import type { Producer } from "kafkajs";
 import { Processor } from "./processor";
@@ -46,7 +43,7 @@ export class WorkerPool {
     this.running = true;
     logger.info(`Starting worker pool with ${this.size} workers`);
 
-    // Set metrics service for producer
+ 
     const { setMetricsService } = await import("../kafka/producer");
     setMetricsService(this.metrics);
   }
@@ -67,13 +64,15 @@ export class WorkerPool {
         event_type: rawEvent.eventType,
       });
 
-      logger.debug("Processing event", {
+      logger.info("Processing event", {
         messageId,
         configId: rawEvent.configId,
         eventType: rawEvent.eventType,
       });
 
-      // Process the event
+      console.log("raw event", rawEvent);
+
+ 
       await this.processor.process(rawEvent, messageId);
 
       const processingTime = Date.now() - startTime;
@@ -89,7 +88,7 @@ export class WorkerPool {
         status: "success",
       });
 
-      logger.debug("Event processed successfully", {
+      logger.info("Event processed successfully", {
         messageId,
         processingTimeMs: processingTime,
       });

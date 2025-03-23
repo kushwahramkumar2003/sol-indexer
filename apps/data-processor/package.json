@@ -3,9 +3,16 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "start": "bun dist/index.js",
+    "build": "bunx tsc -b"
+  },
   "devDependencies": {
     "@types/bun": "latest",
-    "db": "*"
+    "db": "*",
+    "parser": "*",
+    "logger": "*"
   },
   "peerDependencies": {
     "typescript": "^5"

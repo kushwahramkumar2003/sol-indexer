@@ -16,13 +16,11 @@ export class ConfigCache {
   }
 
   async getConfig(configId: string): Promise<any> {
-    // Check cache first
     const cachedConfig = this.cache.get(configId);
     if (cachedConfig) {
       return cachedConfig;
     }
 
-    // Fetch from database
     try {
       const configuration = await this.prisma.indexingConfiguration.findUnique({
         where: { id: configId },
@@ -39,7 +37,6 @@ export class ConfigCache {
         throw new Error(`Configuration with id ${configId} not found`);
       }
 
-      // Store in cache
       this.cache.set(configId, configuration);
 
       return configuration;
@@ -55,9 +52,8 @@ export class ConfigCache {
   }
 
   async refreshConfig(configId: string): Promise<any> {
-    // Force refresh by invalidating cache first
     this.invalidateCache(configId);
-    // Then fetch fresh data
+
     return this.getConfig(configId);
   }
 }

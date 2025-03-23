@@ -1,9 +1,7 @@
-// src/config.ts
 import { z } from "zod";
 import { BlockchainNetwork } from "@prisma/client";
 import os from "os";
 
-// Configuration schema with validation
 const configSchema = z.object({
   env: z.enum(["development", "production", "test"]),
   kafka: z.object({
@@ -15,6 +13,9 @@ const configSchema = z.object({
     dlqTopic: z.string(), // Dead letter queue
     commitInterval: z.number(),
     messageTimeout: z.number(),
+    username: z.string(),
+    password: z.string(),
+    ca_path: z.string(),
   }),
   processing: z.object({
     workerCount: z.number().int().positive(),
@@ -40,13 +41,16 @@ export const config = configSchema.parse({
   kafka: {
     clientId: process.env.KAFKA_CLIENT_ID || "blockchain-data-processor",
     brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
-    consumerGroupId:
-      process.env.KAFKA_CONSUMER_GROUP_ID || "data-processor-group",
+    consumerGroupId: process.env.KAFKA_CONSUMER_GROUP_ID || "sol-indexer-group",
     inputTopic: process.env.KAFKA_INPUT_TOPIC || "webhook-events",
     outputTopic: process.env.KAFKA_OUTPUT_TOPIC || "processed-events",
     dlqTopic: process.env.KAFKA_DLQ_TOPIC || "dead-letter-queue",
     commitInterval: parseInt(process.env.KAFKA_COMMIT_INTERVAL || "5000", 10),
     messageTimeout: parseInt(process.env.KAFKA_MESSAGE_TIMEOUT || "30000", 10),
+    username: process.env.KAFKA_USERNAME,
+    password: process.env.KAFKA_PASSWORD,
+    mechanism: process.env.KAFKA_MECHANISM,
+    ca_path: process.env.CA_CIRT_PATH,
   },
   processing: {
     workerCount: parseInt(
@@ -75,7 +79,7 @@ export const config = configSchema.parse({
   },
 });
 
-// Types for raw event from webhook
+
 export interface RawEvent {
   configId: string;
   eventType: string;
@@ -93,13 +97,23 @@ export interface RawEvent {
   };
 }
 
-// Types for processed event
+
 export interface ProcessedEvent {
   id: string;
   configId: string;
   eventType: string;
   network: BlockchainNetwork;
   processedData: Record<string, any>;
+  credentials: {
+    id: string;
+    userId: string;
+    host: string;
+    port: number;
+    database: string;
+    username: string;
+    password: string;
+    ssl: boolean;
+  };
   metadata: {
     processorVersion: string;
     processedAt: Date;
@@ -107,7 +121,7 @@ export interface ProcessedEvent {
   };
 }
 
-// Create a type guard for event types
+
 export function isValidEventType(type: string): boolean {
   return [
     "NFT_BIDS",
@@ -115,5 +129,7 @@ export function isValidEventType(type: string): boolean {
     "TOKEN_BORROW",
     "TOKEN_PRICES",
     "TRANSACTIONS",
+    "TRANSFER",
+    "NFT_SALE",
   ].includes(type);
 }
