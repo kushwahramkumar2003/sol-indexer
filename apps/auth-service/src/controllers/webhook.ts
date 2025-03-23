@@ -1,22 +1,34 @@
 import type { Request, Response } from "express";
 import { log } from "../utils/logger";
-import { PrismaClient } from "@prisma/client";
 import { config } from "../config";
 import crypto from "crypto";
+import prisma from "db/client";
+import { createWebhookSchema } from "types";
 
-const prisma = new PrismaClient();
-
-export async function createWebhook(req: Request, res: Response) {
+export const createWebhook = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     if (!req.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
 
     const userId = req.userId;
 
-    const { configurationId } = req.body;
+    const parsedData = createWebhookSchema.safeParse(req.body);
 
-    // Verify the configuration exists and belongs to the user
+    if (!parsedData.success) {
+      res.status(400).json({
+        error: "Invalid input data",
+        errors: parsedData.error.errors,
+      });
+      return;
+    }
+
+    const { configurationId } = parsedData.data;
+
     const configuration = await prisma.indexingConfiguration.findFirst({
       where: {
         id: configurationId,
@@ -25,7 +37,8 @@ export async function createWebhook(req: Request, res: Response) {
     });
 
     if (!configuration) {
-      return res.status(404).json({ error: "Configuration not found" });
+      res.status(404).json({ error: "Configuration not found" });
+      return;
     }
 
     const randomString = crypto.randomBytes(16).toString("hex");
@@ -36,7 +49,7 @@ export async function createWebhook(req: Request, res: Response) {
 
     const webhookPath = `${webhookHash}`;
 
-    // Store the webhook registration
+  
     await prisma.webhookRegistration.create({
       data: {
         userId,
@@ -55,12 +68,16 @@ export async function createWebhook(req: Request, res: Response) {
     log.error("Failed to create webhook", error as Error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
-export async function listWebhooks(req: Request, res: Response) {
+export const listWebhooks = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     if (!req.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
 
     const webhooks = await prisma.webhookRegistration.findMany({
@@ -84,17 +101,22 @@ export async function listWebhooks(req: Request, res: Response) {
     log.error("Failed to list webhooks", error as Error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
-export async function deleteWebhook(req: Request, res: Response) {
+export const deleteWebhook = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     if (!req.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
 
     const { id } = req.params;
     if (!id) {
-      return res.status(400).json({ error: "Webhook ID is required" });
+      res.status(400).json({ error: "Webhook ID is required" });
+      return;
     }
     const result = await prisma.webhookRegistration.deleteMany({
       where: {
@@ -104,7 +126,8 @@ export async function deleteWebhook(req: Request, res: Response) {
     });
 
     if (result.count === 0) {
-      return res.status(404).json({ error: "Webhook not found" });
+      res.status(404).json({ error: "Webhook not found" });
+      return;
     }
 
     res.json({
@@ -115,4 +138,4 @@ export async function deleteWebhook(req: Request, res: Response) {
     log.error("Failed to delete webhook", error as Error);
     res.status(500).json({ error: "Internal server error" });
   }
-}
+};

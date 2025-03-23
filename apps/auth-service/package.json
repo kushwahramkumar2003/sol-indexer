@@ -13,7 +13,8 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "db": "*",
-    "types": "*"
+    "types": "*",
+    "logger": "*"
   },
   "peerDependencies": {
     "typescript": "^5"
