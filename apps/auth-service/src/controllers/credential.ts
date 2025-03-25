@@ -19,8 +19,9 @@ export const addDatabaseCredentials = async (
       return;
     }
 
-    const { userId, host, port, database, username, password, ssl } =
-      parsedData.data;
+    const userId = req.userId as string;
+
+    const { host, port, database, username, password, ssl } = parsedData.data;
 
     const dbCredentials = await prisma.databaseCredential.create({
       data: {
@@ -91,7 +92,7 @@ export const getDatabaseCredentials = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = req.query.userId as string;
+    const userId = req.userId as string;
     if (!userId) {
       res.status(400).json({
         success: false,
@@ -100,31 +101,23 @@ export const getDatabaseCredentials = async (
       return;
     }
 
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const skip = (page - 1) * limit;
-
-    const [dbCredentials, total] = await Promise.all([
-      prisma.databaseCredential.findMany({
-        where: { userId },
-        skip,
-        take: limit,
-        orderBy: { updatedAt: "desc" },
-      }),
-      prisma.databaseCredential.count({
-        where: { userId },
-      }),
-    ]);
+    const dbCredentials = await prisma.databaseCredential.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        host: true,
+        port: true,
+        database: true,
+        username: true,
+        createdAt: true,
+      },
+    });
 
     res.status(200).json({
       success: true,
       data: dbCredentials,
-      pagination: {
-        total,
-        page,
-        limit,
-        pages: Math.ceil(total / limit),
-      },
     });
   } catch (error) {
     console.error("Error fetching database credentials:", error);

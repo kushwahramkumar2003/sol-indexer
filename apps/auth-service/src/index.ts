@@ -10,7 +10,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:3000",
+    credentials: true,
   })
 );
 app.use(express.json());
@@ -24,5 +25,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(config.port, () => {
-  console.log("App is running on port 3000");
+  console.log("App is running on port ", config.port);
 });

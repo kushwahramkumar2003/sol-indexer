@@ -1,74 +1,73 @@
 import type { Request, Response } from "express";
-import { log } from "../utils/logger";
+import { logger } from "../utils/logger";
 import { config } from "../config";
 import crypto from "crypto";
 import prisma from "db/client";
 import { createWebhookSchema } from "types";
 
-export const createWebhook = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    if (!req.userId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
+// export const createWebhook = async (
+//   req: Request,
+//   res: Response
+// ): Promise<void> => {
+//   try {
+//     if (!req.userId) {
+//       res.status(401).json({ error: "Unauthorized" });
+//       return;
+//     }
 
-    const userId = req.userId;
+//     const userId = req.userId;
 
-    const parsedData = createWebhookSchema.safeParse(req.body);
+//     const parsedData = createWebhookSchema.safeParse(req.body);
 
-    if (!parsedData.success) {
-      res.status(400).json({
-        error: "Invalid input data",
-        errors: parsedData.error.errors,
-      });
-      return;
-    }
+//     if (!parsedData.success) {
+//       res.status(400).json({
+//         error: "Invalid input data",
+//         errors: parsedData.error.errors,
+//       });
+//       return;
+//     }
 
-    const { configurationId } = parsedData.data;
+//     const { configurationId } = parsedData.data;
 
-    const configuration = await prisma.indexingConfiguration.findFirst({
-      where: {
-        id: configurationId,
-        userId,
-      },
-    });
+//     const configuration = await prisma.indexingConfiguration.findFirst({
+//       where: {
+//         id: configurationId,
+//         userId,
+//       },
+//     });
 
-    if (!configuration) {
-      res.status(404).json({ error: "Configuration not found" });
-      return;
-    }
+//     if (!configuration) {
+//       res.status(404).json({ error: "Configuration not found" });
+//       return;
+//     }
 
-    const randomString = crypto.randomBytes(16).toString("hex");
-    const webhookHash = crypto
-      .createHmac("sha256", config.webhookSecret)
-      .update(`${userId}:${configuration}:${randomString}`)
-      .digest("hex");
+//     const randomString = crypto.randomBytes(16).toString("hex");
+//     const webhookHash = crypto
+//       .createHmac("sha256", config.webhookSecret)
+//       .update(`${userId}:${configuration}:${randomString}`)
+//       .digest("hex");
 
-    const webhookPath = `${webhookHash}`;
+//     const webhookPath = `${webhookHash}`;
 
-  
-    await prisma.webhookRegistration.create({
-      data: {
-        userId,
-        configurationId,
-        webhookPath,
-      },
-    });
+//     await prisma.webhookRegistration.create({
+//       data: {
+//         userId,
+//         configurationId,
+//         webhookPath,
+//       },
+//     });
 
-    const webhookUrl = `${config.apiBaseUrl}/webhook/${webhookPath}`;
+//     const webhookUrl = `${config.apiBaseUrl}/webhook/${webhookPath}`;
 
-    res.status(201).json({
-      success: true,
-      webhookUrl,
-    });
-  } catch (error) {
-    log.error("Failed to create webhook", error as Error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
+//     res.status(201).json({
+//       success: true,
+//       webhookUrl,
+//     });
+//   } catch (error) {
+//     logger.error("Failed to create webhook", error as Error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 export const listWebhooks = async (
   req: Request,
@@ -98,7 +97,7 @@ export const listWebhooks = async (
       })),
     });
   } catch (error) {
-    log.error("Failed to list webhooks", error as Error);
+    logger.error("Failed to list webhooks", error as Error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -135,7 +134,7 @@ export const deleteWebhook = async (
       message: "Webhook deleted successfully",
     });
   } catch (error) {
-    log.error("Failed to delete webhook", error as Error);
+    logger.error("Failed to delete webhook", error as Error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -5,7 +5,7 @@ import type {
 } from "express";
 import jwt from "jsonwebtoken";
 
-// Extend Express Request type to include userId
+
 declare global {
   namespace Express {
     interface Request {
@@ -21,17 +21,14 @@ interface JwtPayload {
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
-/**
- * Middleware to authenticate requests using JWT tokens
- * Expects token in the 'token' header or in Authorization header as Bearer token
- */
+
 export const authMiddleware = (
   req: ExpressRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // Get token from headers
+   
     const token =
       (req.headers.token as string) ||
       (req.headers.authorization?.startsWith("Bearer ")
@@ -40,19 +37,19 @@ export const authMiddleware = (
 
     console.log("Token:", token);
 
-    // Check if token exists
+  
     if (!token) {
       return res
         .status(401)
         .json({ message: "Access denied. No token provided." });
     }
 
-    // Verify token
+
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
 
     console.log("Decoded token:", decoded);
 
-    // Set userId in request object
+
     req.userId = decoded.id;
     console.log("req.userId:", req.userId);
     next();
@@ -70,10 +67,6 @@ export const authMiddleware = (
   }
 };
 
-/**
- * Optional authentication middleware that continues even if no token is present
- * Sets userId if token is valid, otherwise continues without it
- */
 export const optionalAuthMiddleware = (
   req: ExpressRequest,
   res: Response,
@@ -93,7 +86,7 @@ export const optionalAuthMiddleware = (
 
     next();
   } catch (error) {
-    // Continue without setting userId if token validation fails
+    
     next();
   }
 };

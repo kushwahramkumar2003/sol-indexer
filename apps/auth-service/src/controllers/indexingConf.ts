@@ -2,6 +2,8 @@ import { z } from "zod";
 import prisma from "db/client";
 import type { Request, Response } from "express";
 import { indexingConfigSchema } from "types";
+import crypto from "crypto";
+import { config } from "../config";
 
 export const getAllIndexingConfiguration = async (
   req: Request,
@@ -89,10 +91,27 @@ export const createIndexingConfiguration = async (
       },
     });
 
+    const randomString = crypto.randomBytes(16).toString("hex");
+    const webhookHash = crypto
+      .createHmac("sha256", config.webhookSecret)
+      .update(`${userId}:${newConfig}:${randomString}`)
+      .digest("hex");
+
+    const webhookPath = `${webhookHash}`;
+
+    await prisma.webhookRegistration.create({
+      data: {
+        userId,
+        configurationId: newConfig.id,
+        webhookPath,
+      },
+    });
+
+    const webhookUrl = `${config.apiBaseUrl}/webhook/${webhookPath}`;
+
     res.status(201).json({
       success: true,
-      message: "Configuration created successfully",
-      data: newConfig,
+      webhookUrl,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -104,7 +123,7 @@ export const createIndexingConfiguration = async (
       return;
     }
 
-    console.error("Error creating configuration:", error);
+    console.error("Error creating webhook:", error);
     res.status(500).json({
       success: false,
       message: "Failed to create configuration",
