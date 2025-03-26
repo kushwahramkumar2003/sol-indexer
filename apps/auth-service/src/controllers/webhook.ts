@@ -1,73 +1,8 @@
 import type { Request, Response } from "express";
 import { logger } from "../utils/logger";
 import { config } from "../config";
-import crypto from "crypto";
 import prisma from "db/client";
-import { createWebhookSchema } from "types";
-
-// export const createWebhook = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     if (!req.userId) {
-//       res.status(401).json({ error: "Unauthorized" });
-//       return;
-//     }
-
-//     const userId = req.userId;
-
-//     const parsedData = createWebhookSchema.safeParse(req.body);
-
-//     if (!parsedData.success) {
-//       res.status(400).json({
-//         error: "Invalid input data",
-//         errors: parsedData.error.errors,
-//       });
-//       return;
-//     }
-
-//     const { configurationId } = parsedData.data;
-
-//     const configuration = await prisma.indexingConfiguration.findFirst({
-//       where: {
-//         id: configurationId,
-//         userId,
-//       },
-//     });
-
-//     if (!configuration) {
-//       res.status(404).json({ error: "Configuration not found" });
-//       return;
-//     }
-
-//     const randomString = crypto.randomBytes(16).toString("hex");
-//     const webhookHash = crypto
-//       .createHmac("sha256", config.webhookSecret)
-//       .update(`${userId}:${configuration}:${randomString}`)
-//       .digest("hex");
-
-//     const webhookPath = `${webhookHash}`;
-
-//     await prisma.webhookRegistration.create({
-//       data: {
-//         userId,
-//         configurationId,
-//         webhookPath,
-//       },
-//     });
-
-//     const webhookUrl = `${config.apiBaseUrl}/webhook/${webhookPath}`;
-
-//     res.status(201).json({
-//       success: true,
-//       webhookUrl,
-//     });
-//   } catch (error) {
-//     logger.error("Failed to create webhook", error as Error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
+import { Prisma } from "@prisma/client";
 
 export const listWebhooks = async (
   req: Request,
@@ -86,15 +21,51 @@ export const listWebhooks = async (
       },
     });
 
+    const configIds = webhooks.map((w) => w.configurationId);
+
+    const eventCounts = await prisma.dataSyncLog.groupBy({
+      by: ["configId"],
+      _count: {
+        id: true,
+      },
+      where: {
+        configId: {
+          in: configIds,
+        },
+      },
+    });
+
+    const lastEvents = await prisma.$queryRaw`
+      SELECT DISTINCT ON ("configId") "configId", "createdAt"
+      FROM "data_sync_logs"
+      WHERE "configId" IN (${Prisma.join(configIds)})
+      ORDER BY "configId", "createdAt" DESC
+    `;
+
+    const countMap = Object.fromEntries(
+      eventCounts.map((e) => [e.configId, e._count.id])
+    );
+
+    const lastEventMap = Object.fromEntries(
+      Array.isArray(lastEvents)
+        ? lastEvents.map((e) => [e.configId, e.createdAt])
+        : []
+    );
+
+    const formattedWebhooks = webhooks.map((w) => ({
+      id: w.id,
+      configurationId: w.configurationId,
+      configurationName: w.configuration.name,
+      webhookUrl: `${config.apiBaseUrl}/webhook/${w.webhookPath}`,
+      createdAt: w.createdAt,
+      status: w.configuration.enabled ? "active" : "inactive",
+      lastTriggered: lastEventMap[w.configurationId] || null,
+      eventCount: countMap[w.configurationId] || 0,
+    }));
+
     res.json({
       success: true,
-      webhooks: webhooks.map((w) => ({
-        id: w.id,
-        configurationId: w.configurationId,
-        configurationName: w.configuration.name,
-        webhookUrl: `${config.apiBaseUrl}/webhook/${w.webhookPath}`,
-        createdAt: w.createdAt,
-      })),
+      webhooks: formattedWebhooks,
     });
   } catch (error) {
     logger.error("Failed to list webhooks", error as Error);
