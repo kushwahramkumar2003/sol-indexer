@@ -29,9 +29,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { clearAuth, getAuth, isAuthenticated } from "@/lib/localStorage";
+import { clearAuth, getAuth } from "@/lib/localStorage";
 
 interface NavItem {
   label: string;
@@ -65,7 +65,7 @@ export function Navbar({
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [authData] = useState<AuthData | null>(getAuth());
+  const [authData, setAuthData] = useState<AuthData | null>(null);
 
   const isDashboard = variant === "dashboard";
 
@@ -76,6 +76,11 @@ export function Navbar({
       console.log(authData);
     }
   });
+
+  useEffect(() => {
+    const authData = getAuth();
+    setAuthData(authData);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -109,7 +114,6 @@ export function Navbar({
             <span className="font-bold text-xl">HeliusIndex</span>
           </Link>
 
-          {/* Desktop Navigation for Landing */}
           {!isDashboard && (
             <nav className="hidden md:flex items-center ml-10 gap-1">
               {items.map((item) => (
@@ -156,7 +160,6 @@ export function Navbar({
             </nav>
           )}
 
-          {/* Dashboard Navigation */}
           {isDashboard && (
             <nav className="hidden md:flex items-center ml-10 gap-1">
               {items.map((item) => (
@@ -172,7 +175,6 @@ export function Navbar({
           )}
         </div>
 
-        {/* Right side - Auth buttons or user menu */}
         <div className="flex items-center gap-3">
           {isDashboard && (
             <Button variant="ghost" size="icon" className="relative">
@@ -250,7 +252,6 @@ export function Navbar({
             </div>
           )}
 
-          {/* Mobile Menu Button */}
           <div className="flex md:hidden">
             <Sheet>
               <SheetTrigger asChild>

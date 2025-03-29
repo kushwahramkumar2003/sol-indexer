@@ -46,7 +46,6 @@ import {
   Search,
   RefreshCw,
 } from "lucide-react";
-import { getAllDatabases } from "@/services/credentials.services";
 import { useToast } from "@/hooks/use-toast";
 import { IndexingConfiguration } from "@/services/indexingConf.sercices";
 
@@ -89,7 +88,7 @@ export const indexingConfigSchema = z.object({
     .nativeEnum(BlockchainNetwork)
     .default(BlockchainNetwork.SOLANA_MAINNET),
   enabled: z.boolean().default(true),
-  databaseId: z.string().min(1, "Database is required"),
+  credentialId: z.string().min(1, "Database is required"),
 });
 
 export type DatabaseCredentials = z.infer<
@@ -112,7 +111,7 @@ export interface ConfigurationDialogProps {
   mode?: "create" | "edit";
   existingData?: IndexingConfig & { id?: string; webhookUrl?: string };
   onSuccess?: (data: { id?: string; webhookUrl?: string }) => void;
-  createFn?: (data: IndexingConfig) => Promise<any>;
+  createFn: (data: IndexingConfig) => Promise<any>;
   updateFn?: (params: { id: string; data: IndexingConfiguration }) => Promise<{
     data: {
       success: boolean;
@@ -184,7 +183,7 @@ export function ConfigurationDialog({
       categories: [],
       network: BlockchainNetwork.SOLANA_MAINNET,
       enabled: true,
-      databaseId: "",
+      credentialId: "",
     },
   });
 
@@ -213,7 +212,7 @@ export function ConfigurationDialog({
           categories: [],
           network: BlockchainNetwork.SOLANA_MAINNET,
           enabled: true,
-          databaseId: "",
+          credentialId: "",
         });
         setSelectedDatabase(null);
       } else if (mode === "edit" && existingData) {
@@ -232,7 +231,7 @@ export function ConfigurationDialog({
 
   useEffect(() => {
     if (selectedDatabase) {
-      configForm.setValue("databaseId", selectedDatabase.id);
+      configForm.setValue("credentialId", selectedDatabase.id);
     }
   }, [selectedDatabase]);
 
@@ -255,13 +254,11 @@ export function ConfigurationDialog({
 
     setIsLoadingDatabases(true);
     try {
-      let res;
+      const { getAllDatabases } = await import(
+        "@/services/credentials.services"
+      );
 
-      if (fetchDatabasesFn) {
-        res = await fetchDatabasesFn();
-      } else {
-        res = await getAllDatabases();
-      }
+      const res = await getAllDatabases();
 
       if (res && res.error) {
         throw new Error(res.error.message);
@@ -277,9 +274,9 @@ export function ConfigurationDialog({
       console.log("existingData:", existingData);
       console.log("fetchedDatabases:", fetchedDatabases);
 
-      if (mode === "edit" && existingData?.databaseId) {
+      if (mode === "edit" && existingData?.credentialId) {
         const db = fetchedDatabases.find(
-          (db) => db.id === existingData.databaseId
+          (db) => db.id === existingData.credentialId
         );
         console.log("Selected DB:", db);
         if (db) {
@@ -329,11 +326,13 @@ export function ConfigurationDialog({
         throw new Error(res.error.message);
       }
 
-      const newDatabase: DatabaseType = res.data;
+      console.log("createDatabaseFn result newDatabase :", res);
 
-      setDatabases([...databases, newDatabase]);
-      setFilteredDatabases([...filteredDatabases, newDatabase]);
+      const newDatabase: DatabaseType = res.data.data;
+
       setSelectedDatabase(newDatabase);
+
+      fetchDatabases();
 
       toast({
         title: "Database Connected",
@@ -361,17 +360,22 @@ export function ConfigurationDialog({
       let result;
 
       if (mode === "create") {
-        if (createFn) {
-          result = await createFn(data);
-        } else {
-          result = {
-            id: Math.random().toString(36).substring(2, 10),
-            webhookUrl: `https://api.heliusindex.com/webhook/${data.databaseId}/${Math.random().toString(36).substring(2, 10)}`,
-            ...data,
-          };
+        if (!selectedDatabase?.id) {
+          throw new Error("No database selected");
         }
 
-        setWebhookUrl(result.webhookUrl);
+        const res = await createFn({
+          ...data,
+          credentialId: selectedDatabase.id,
+        });
+
+        if (res.error) {
+          throw new Error(res.error.message);
+        }
+
+        console.log("createFn result:", res);
+
+        setWebhookUrl(res.data.webhookUrl);
         toast({
           title: "Configuration Created",
           description:
@@ -382,7 +386,7 @@ export function ConfigurationDialog({
         if (updateFn) {
           result = await updateFn({
             id: existingData.id,
-            data: { ...data, credentialId: data.databaseId },
+            data: { ...data, credentialId: data.credentialId },
           });
         } else {
           result = {
@@ -404,6 +408,7 @@ export function ConfigurationDialog({
         setStep(3);
       } else {
         if (onSuccess) {
+          //@ts-ignore
           onSuccess(result);
         }
         onOpenChange(false);
@@ -455,7 +460,7 @@ export function ConfigurationDialog({
       categories: [],
       network: BlockchainNetwork.SOLANA_MAINNET,
       enabled: true,
-      databaseId: "",
+      credentialId: "",
     });
     setSelectedDatabase(null);
   };
@@ -516,7 +521,7 @@ export function ConfigurationDialog({
                 </p>
               </div>
               {selectedDatabase?.id === db.id ||
-                (existingData?.databaseId === db.id && (
+                (existingData?.credentialId === db.id && (
                   <Check className="h-5 w-5 text-primary" />
                 ))}
             </div>

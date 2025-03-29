@@ -32,7 +32,6 @@ import {
   BarChart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getIndexingConfById } from "@/services/indexingConf.sercices";
 
 type WebhookType = {
   id: string;
@@ -84,6 +83,10 @@ export function WebhookDetailDialog({
   const fetchWebhookDetails = async () => {
     setIsLoading(true);
     try {
+      const { getIndexingConfById } = await import(
+        "@/services/indexingConf.sercices"
+      );
+
       const res = await getIndexingConfById(webhook?.configurationId || "");
 
       if (res.error || !res.data) {

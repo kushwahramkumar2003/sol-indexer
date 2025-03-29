@@ -1,3 +1,5 @@
+"use client";
+
 export interface AuthData {
   token: string;
   user: {

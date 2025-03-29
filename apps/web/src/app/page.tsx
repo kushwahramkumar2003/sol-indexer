@@ -3,13 +3,9 @@ import { MeteorEffect } from "@/components/meteor-effect";
 import { HeroSection } from "@/components/hero-section";
 import { FeaturesSection } from "@/components/features-section";
 import { HowItWorksSection } from "@/components/how-it-works-section";
-import { PricingSection } from "@/components/pricing-section";
-import { TestimonialsSection } from "@/components/testimonials-section";
-import { FAQSection } from "@/components/faq-section";
 import { CTASection } from "@/components/cta-section";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
-import { Sidebar } from "@/components/dashboard/sidebar";
 
 export default function Home() {
   const navItems = [
@@ -53,9 +49,6 @@ export default function Home() {
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
-        <PricingSection />
-        <TestimonialsSection />
-        <FAQSection />
         <CTASection />
       </main>
       <Footer />

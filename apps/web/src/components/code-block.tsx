@@ -43,6 +43,7 @@ const indexingOptions = {
   ];
 
   const highlightCode = (code: string) => {
+   
     return code
       .replace(/(\/\/.*)/g, '<span class="text-gray-400">$1</span>')
       .replace(/(".*?")/g, '<span class="text-amber-300">$1</span>')
@@ -55,10 +56,14 @@ const indexingOptions = {
         '<span class="text-blue-400">$1</span>'
       )
       .replace(/\b(\d+(\.\d+)?)\b/g, '<span class="text-green-400">$1</span>')
-      .replace(/\{|\}|\[|\]/g, '<span class="text-rose-300">$&</span>')
+      .replace(/(\{|\}|\[|\])/g, '<span class="text-rose-300">$1</span>')
       .replace(
-        /\b(host|port|database|username|password|categories|network|nfts|tokens|mintAddress|name|currentPrice|symbol|price|platform)\b:/g,
+        /\b(host|port|database|username|password|categories|network)\b:/g,
         '<span class="text-cyan-300">$1</span>:'
+      )
+      .replace(
+        /"(nfts|tokens|mintAddress|name|currentPrice|symbol|price|platform)":/g,
+        '"<span class="text-cyan-300">$1</span>:'
       );
   };
 

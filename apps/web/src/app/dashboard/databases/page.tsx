@@ -65,13 +65,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import {
-  createDatabaseHand,
-  deleteDatabaseHandler,
-  getAllDatabases,
-  getDatabaseById,
-  updateDatabaseHandler,
-} from "@/services/credentials.services";
 
 const createDatabaseCredentialsSchema = z.object({
   host: z.string().min(1, "Host is required"),
@@ -180,6 +173,10 @@ export default function DatabasesPage() {
   const fetchDatabases = async () => {
     setIsLoading(true);
     try {
+      const { getAllDatabases } = await import(
+        "@/services/credentials.services"
+      );
+
       const res = await getAllDatabases();
 
       if (res.error) {
@@ -215,6 +212,9 @@ export default function DatabasesPage() {
 
   const fetchDatabaseById = async (id: string) => {
     try {
+      const { getDatabaseById } = await import(
+        "@/services/credentials.services"
+      );
       const res = await getDatabaseById({ id });
 
       if (res.error) {
@@ -245,6 +245,9 @@ export default function DatabasesPage() {
     data: z.infer<typeof createDatabaseCredentialsSchema>
   ) => {
     try {
+      const { createDatabaseHand } = await import(
+        "@/services/credentials.services"
+      );
       const res = await createDatabaseHand(data);
 
       if (res.error) {
@@ -273,6 +276,10 @@ export default function DatabasesPage() {
     data: z.infer<typeof updateDatabaseCredentialsSchema>
   ) => {
     try {
+      const { updateDatabaseHandler } = await import(
+        "@/services/credentials.services"
+      );
+
       const res = await updateDatabaseHandler(data);
 
       if (res.error) {
@@ -312,6 +319,10 @@ export default function DatabasesPage() {
     if (!selectedDatabase) return;
 
     try {
+      const { deleteDatabaseHandler } = await import(
+        "@/services/credentials.services"
+      );
+
       const res = await deleteDatabaseHandler({ id: selectedDatabase.id });
 
       if (res.error) {

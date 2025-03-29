@@ -66,14 +66,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { WebhookDetailDialog } from "@/components/dashboard/webhook-detail-dialog";
+
+import { useToast } from "@/hooks/use-toast";
 import {
-  deleteWebhook,
-  getAllIndexingConfs,
-  listWebhooks,
-  toggleIndexingConfEnabled,
+  createIndexingConf,
   updateIndexingConf,
 } from "@/services/indexingConf.sercices";
-import { useToast } from "@/hooks/use-toast";
 
 type WebhookType = {
   id: string;
@@ -87,7 +85,7 @@ type WebhookType = {
   enabled?: boolean;
   categories?: string[];
   network?: string;
-  databaseId?: string;
+  credentialId?: string;
 };
 
 type IndexingConfiguration = {
@@ -146,6 +144,8 @@ export default function WebhooksPage() {
   const fetchWebhooks = async () => {
     setIsLoading(true);
     try {
+      const { listWebhooks } = await import("@/services/indexingConf.sercices");
+
       const res = await listWebhooks();
 
       if (res.error) {
@@ -167,6 +167,9 @@ export default function WebhooksPage() {
 
   const fetchConfigurations = async () => {
     try {
+      const { getAllIndexingConfs } = await import(
+        "@/services/indexingConf.sercices"
+      );
       const res = await getAllIndexingConfs();
 
       if (res.error) {
@@ -206,6 +209,10 @@ export default function WebhooksPage() {
     if (!selectedWebhook) return;
 
     try {
+      const { deleteWebhook } = await import(
+        "@/services/indexingConf.sercices"
+      );
+
       const res = await deleteWebhook(selectedWebhook.id);
 
       if (res.error) {
@@ -236,6 +243,10 @@ export default function WebhooksPage() {
   const handleToggleStatus = async (id: string) => {
     setIsTogglingStatus(id);
     try {
+      const { toggleIndexingConfEnabled } = await import(
+        "@/services/indexingConf.sercices"
+      );
+
       const res = await toggleIndexingConfEnabled(id);
 
       if (res.error) {
@@ -374,7 +385,7 @@ export default function WebhooksPage() {
         categories: config.categories.map((cat) => cat as IndexingCategory),
         network: config.network as BlockchainNetwork,
         enabled: config.enabled,
-        databaseId: config.id,
+        credentialId: config.id,
         webhookUrl: webhook.webhookUrl,
       };
     }
@@ -388,7 +399,7 @@ export default function WebhooksPage() {
         (webhook.network as BlockchainNetwork) ||
         BlockchainNetwork.SOLANA_MAINNET,
       enabled: webhook.enabled !== false,
-      databaseId: webhook.configurationId || "",
+      credentialId: webhook.configurationId || "",
       webhookUrl: webhook.webhookUrl,
     };
   };
@@ -673,6 +684,7 @@ export default function WebhooksPage() {
         onOpenChange={setIsCreateDialogOpen}
         mode="create"
         onSuccess={handleWebhookCreated}
+        createFn={createIndexingConf}
       />
 
       {selectedWebhook && (
@@ -683,6 +695,7 @@ export default function WebhooksPage() {
           existingData={prepareWebhookForEdit(selectedWebhook)}
           onSuccess={handleWebhookUpdated}
           updateFn={updateIndexingConf}
+          createFn={createIndexingConf}
         />
       )}
 

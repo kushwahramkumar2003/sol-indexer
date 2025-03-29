@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { login } from "@/services/auth.services";
 
 const signUpSchema = z
   .object({
@@ -62,7 +61,8 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      const res = await login(data);
+      const { signup } = await import("@/services/auth.services");
+      const res = await signup(data);
       if (res.error) {
         throw new Error(res.error.message);
       }

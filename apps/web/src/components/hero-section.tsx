@@ -78,18 +78,7 @@ export function HeroSection() {
           transition={{ delay: 0.4, duration: 0.6 }}
           className="relative mt-8 max-w-4xl mx-auto"
         >
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-[#e779c1] rounded-lg blur opacity-30"></div>
-          <div className="relative bg-card rounded-lg shadow-xl overflow-hidden border border-border">
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-muted">
-              <div className="h-3 w-3 rounded-full bg-red-500"></div>
-              <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-              <div className="h-3 w-3 rounded-full bg-green-500"></div>
-              <div className="ml-2 text-sm font-mono text-muted-foreground">
-                Configure your indexing
-              </div>
-            </div>
-            <CodeBlock />
-          </div>
+          <CodeBlock />
         </motion.div>
 
         <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">

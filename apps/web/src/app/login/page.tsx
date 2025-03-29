@@ -26,9 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { login } from "@/services/auth.services";
 import { loginSchema } from "types";
-import { saveAuth } from "@/lib/localStorage";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -49,6 +47,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      const { login } = await import("@/services/auth.services");
       const response = await login(data);
 
       // console.log(response);
@@ -56,6 +55,8 @@ export default function LoginPage() {
       if (response.error) {
         throw new Error(response.error.message || "Invalid email or password");
       }
+
+      const { saveAuth } = await import("@/lib/localStorage");
 
       saveAuth(response.data.token, response.data.user);
 

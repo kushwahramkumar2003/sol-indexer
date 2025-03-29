@@ -15,17 +15,16 @@ import { Activity, Database, Plus, Server, Users, Bell } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { useToast } from "@/hooks/use-toast";
 import { ConfigurationDialog } from "@/components/dashboard/configuration-dialog";
 import {
   createDatabaseHand,
   getAllDatabases,
 } from "@/services/credentials.services";
+import { createIndexingConf } from "@/services/indexingConf.sercices";
 
 export default function DashboardPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   const activities = [
     {
@@ -65,19 +64,6 @@ export default function DashboardPage() {
 
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-  };
-
-  const handleConfigurationCreated = (webhookUrl: string) => {
-    toast({
-      title: "Configuration Created",
-      description: "Your new configuration has been created successfully.",
-      variant: "default",
-    });
-    setIsDialogOpen(false);
   };
 
   const toggleLoading = () => {
@@ -377,6 +363,7 @@ export default function DashboardPage() {
         onOpenChange={setIsDialogOpen}
         createDatabaseFn={createDatabaseHand}
         fetchDatabasesFn={getAllDatabases}
+        createFn={createIndexingConf}
         mode="create"
       />
     </div>

@@ -57,7 +57,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { AuthData, getAuth } from "@/lib/localStorage";
+import { AuthData } from "@/lib/localStorage";
 
 interface SidebarProps {
   user?: {
@@ -79,7 +79,16 @@ export function Sidebar({ user }: SidebarProps) {
   const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
   const { theme, setTheme } = useTheme();
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const [authData] = useState<AuthData | null>(getAuth());
+  const [authData, setAuthData] = useState<AuthData | null>(null);
+
+  useEffect(() => {
+    const fetchAuth = async () => {
+      const { getAuth } = await import("@/lib/localStorage");
+      const data = getAuth();
+      setAuthData(data);
+    };
+    fetchAuth();
+  }, []);
 
   const getInitials = (name: string) => {
     return name

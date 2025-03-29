@@ -30,9 +30,6 @@ export type SyncStats = {
   } | null;
 };
 
-/**
- * Create a new indexing configuration
- */
 export const createIndexingConf = asyncHandler(
   async (data: IndexingConfiguration) => {
     const response = await api.post<{
@@ -43,9 +40,6 @@ export const createIndexingConf = asyncHandler(
   }
 );
 
-/**
- * Get all indexing configurations for the current user
- */
 export const getAllIndexingConfs = asyncHandler(async () => {
   const response = await api.get<{
     success: boolean;
@@ -54,9 +48,6 @@ export const getAllIndexingConfs = asyncHandler(async () => {
   return response.data;
 });
 
-/**
- * Get a specific indexing configuration by ID
- */
 export const getIndexingConfById = asyncHandler(async (id: string) => {
   const response = await api.get<{
     success: boolean;
@@ -75,9 +66,6 @@ export const getIndexingConfById = asyncHandler(async (id: string) => {
   return response.data;
 });
 
-/**
- * Update an existing indexing configuration
- */
 export const updateIndexingConf = asyncHandler(
   async (params: { id: string; data: IndexingConfiguration }) => {
     const { id, data } = params;
@@ -90,9 +78,6 @@ export const updateIndexingConf = asyncHandler(
   }
 );
 
-/**
- * Toggle the enabled status of an indexing configuration
- */
 export const toggleIndexingConfEnabled = asyncHandler(async (id: string) => {
   const response = await api.patch<{
     success: boolean;
@@ -102,9 +87,6 @@ export const toggleIndexingConfEnabled = asyncHandler(async (id: string) => {
   return response.data;
 });
 
-/**
- * Delete an indexing configuration
- */
 export const deleteIndexingConf = asyncHandler(async (id: string) => {
   const response = await api.delete<{
     success: boolean;
@@ -113,9 +95,6 @@ export const deleteIndexingConf = asyncHandler(async (id: string) => {
   return response.data;
 });
 
-/**
- * Get sync statistics for an indexing configuration
- */
 export const getIndexingConfSyncStats = asyncHandler(async (id: string) => {
   const response = await api.get<{
     success: boolean;
@@ -124,9 +103,6 @@ export const getIndexingConfSyncStats = asyncHandler(async (id: string) => {
   return response.data;
 });
 
-/**
- * List all webhooks for the current user
- */
 export const listWebhooks = asyncHandler(async () => {
   const response = await api.get<{
     success: true;
@@ -141,9 +117,6 @@ export const listWebhooks = asyncHandler(async () => {
   return response.data;
 });
 
-/**
- * Delete a webhook
- */
 export const deleteWebhook = asyncHandler(async (id: string) => {
   const response = await api.delete<{
     success: boolean;
