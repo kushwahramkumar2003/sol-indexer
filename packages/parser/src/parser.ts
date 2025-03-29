@@ -8,7 +8,6 @@ import {
 export function identifyEventType(transaction: HeliusTransaction): EventType {
   const { type, events, description } = transaction;
 
-  // Check explicit NFT events from events.nft
   if (events?.nft?.type) {
     switch (events.nft.type) {
       case "NFT_SALE":
@@ -21,7 +20,7 @@ export function identifyEventType(transaction: HeliusTransaction): EventType {
     }
   }
 
-  // Fall back to top-level type
+
   switch (type.toUpperCase()) {
     case "TRANSFER":
       return EventType.TRANSFER;

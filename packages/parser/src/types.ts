@@ -131,7 +131,7 @@ export enum EventType {
   WITHDRAW_LIQUIDITY = "WITHDRAW_LIQUIDITY",
 }
 
-// Helius webhook payload type (simplified)
+
 export interface HeliusTransaction {
   type: string;
   description: string;
@@ -164,7 +164,7 @@ export interface HeliusTransaction {
   transactionError: string | null;
 }
 
-// Parsed data interfaces for specific categories
+
 export interface NFTBidData {
   eventType: EventType.NFT_BID | EventType.NFT_GLOBAL_BID;
   nftMint: string;
