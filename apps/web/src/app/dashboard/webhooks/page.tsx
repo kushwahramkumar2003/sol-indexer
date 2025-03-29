@@ -176,7 +176,7 @@ export default function WebhooksPage() {
         throw new Error(res.error.message);
       }
 
-      if (!res.data) {
+      if (!res?.data?.data) {
         throw new Error("Failed to fetch configurations");
       }
 
