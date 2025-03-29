@@ -6,4 +6,5 @@ export const indexingConfigSchema = z.object({
   categories: z.array(z.nativeEnum(IndexingCategory)).min(1),
   network: z.nativeEnum(BlockchainNetwork).default("SOLANA_MAINNET"),
   enabled: z.boolean().default(true),
+  credentialId: z.string(),
 });
