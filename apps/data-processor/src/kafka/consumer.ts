@@ -75,7 +75,6 @@ export async function setupConsumer(
 
         console.log("eventData", eventData);
 
-        // Submit to worker pool for processing
         await workerPool.processEvent(eventData, messageId);
       } catch (error) {
         logger.error("Error processing message", {
@@ -84,7 +83,7 @@ export async function setupConsumer(
           stack: error instanceof Error ? error.stack : undefined,
         });
 
-        // Handle error and potentially send to DLQ
+    
         if (message.value) {
           await workerPool.handleFailedEvent(
             message.value.toString(),

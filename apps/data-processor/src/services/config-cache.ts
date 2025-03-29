@@ -1,15 +1,15 @@
 import { logger } from "../utils/logger";
 import { config } from "../config";
-import LRU from "lru-cache";
+import { LRUCache } from "lru-cache";
 import { PrismaClient } from "@prisma/client";
 
 export class ConfigCache {
   private prisma: PrismaClient;
-  private cache: LRU<string, any>;
+  private cache: LRUCache<string, any>;
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
-    this.cache = new LRU({
+    this.cache = new LRUCache({
       max: 1000, // Maximum number of cached items
       ttl: config.processing.configCacheTtlMs, // Time to live in milliseconds
     });

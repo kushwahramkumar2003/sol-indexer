@@ -95,7 +95,7 @@ export async function sendToDLQ(
   error: Error
 ): Promise<void> {
   try {
-    // Create DLQ message with error information
+
     const dlqMessage = {
       originalMessage,
       error: {
