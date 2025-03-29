@@ -1,11 +1,11 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   // previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   // extensions = [pgcrypto]
 }
 
@@ -52,38 +52,41 @@ model User {
 }
 
 model DatabaseCredential {
-  id        String   @id @default(uuid())
-  userId    String
-  host      String   @db.VarChar(255)
-  port      Int      @default(5432)
-  database  String   @db.VarChar(255)
-  username  String   @db.VarChar(255)
-  password  String   @db.VarChar(255)
-  ssl       Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String                  @id @default(uuid())
+  userId                String
+  host                  String                  @db.VarChar(255)
+  port                  Int                     @default(5432)
+  database              String                  @db.VarChar(255)
+  username              String                  @db.VarChar(255)
+  password              String                  @db.VarChar(255)
+  ssl                   Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  IndexingConfiguration IndexingConfiguration[]
 
   @@unique([userId, host, database])
   @@map("database_credentials")
 }
 
 model IndexingConfiguration {
-  id                  String                @id @default(uuid())
-  userId              String
-  name                String
-  categories          IndexingCategory[]
-  network             BlockchainNetwork     @default(SOLANA_MAINNET)
-  enabled             Boolean               @default(true)
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions        Transaction[]
-  nfts                NFT[]
-  tokens              Token[]
-  marketData          MarketData[]
-  syncLogs            DataSyncLog[]
-  WebhookRegistration WebhookRegistration[]
+  id                   String                @id @default(uuid())
+  userId               String
+  name                 String
+  categories           IndexingCategory[]
+  network              BlockchainNetwork     @default(SOLANA_MAINNET)
+  enabled              Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions         Transaction[]
+  nfts                 NFT[]
+  tokens               Token[]
+  marketData           MarketData[]
+  syncLogs             DataSyncLog[]
+  WebhookRegistration  WebhookRegistration[]
+  credential           DatabaseCredential?   @relation(fields: [databaseCredentialId], references: [id])
+  databaseCredentialId String?
 
   @@index([userId])
   @@map("indexing_configurations")
@@ -187,6 +190,7 @@ model DataSyncLog {
   success      Boolean               @default(false)
   errorMessage String?
   config       IndexingConfiguration @relation(fields: [configId], references: [id], onDelete: Cascade)
+  createdAt    DateTime              @default(now())
 
   @@index([startTime])
   @@map("data_sync_logs")
