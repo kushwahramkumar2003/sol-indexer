@@ -10,7 +10,6 @@ const router = Router();
 router.use("/auth", authRoutes);
 router.use("/cred", authMiddleware, credentialRoutes);
 router.use("/conf", authMiddleware, indexingConfRoutes);
-// Management routes (require authentication)
 router.use("/whook", authMiddleware, webhookRoutes);
 
 export default router;

@@ -84,10 +84,21 @@ export const createIndexingConfiguration = async (
 
     const validatedData = indexingConfigSchema.parse(req.body);
 
+    const credential = await prisma.databaseCredential.findUnique({
+      where: {
+        userId,
+        id: validatedData.credentialId,
+      },
+    });
+
     const newConfig = await prisma.indexingConfiguration.create({
       data: {
-        ...validatedData,
+        name: validatedData.name,
+        network: validatedData.network,
+        enabled: validatedData.enabled,
+        categories: validatedData.categories,
         userId,
+        databaseCredentialId: credential?.id,
       },
     });
 
