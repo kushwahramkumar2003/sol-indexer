@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { kafkaProducer } from "../kafka/producer";
-import { log } from "../utils/logger";
+import { logger } from "../utils/logger";
 import { IndexingCategory } from "@prisma/client";
 import prisma from "db/client";
 import { identifyEventType, parseEventData, EventType } from "parser";
@@ -24,31 +24,30 @@ export const handleWebhook = async (
       include: {
         configuration: {
           include: {
-            user: {
-              include: {
-                databaseCredentials: true,
-              },
-            },
+            user: true,
+            credential: true,
           },
         },
       },
     });
 
+    console.log("webhook", webhook);
+
     if (!webhook) {
-      log.warn(`Invalid webhook path: ${webhookPath}`);
+      logger.warn(`Invalid webhook path: ${webhookPath}`);
       res.status(404).json({ error: "Webhook not found" });
       return;
     }
 
     if (!webhook.configuration.enabled) {
-      log.warn(`Configuration is disabled: ${webhook.configurationId}`);
+      logger.warn(`Configuration is disabled: ${webhook.configurationId}`);
       res.status(400).json({ error: "Configuration is disabled" });
       return;
     }
 
     const transactions = Array.isArray(req.body) ? req.body : [req.body];
     if (transactions.length === 0) {
-      log.warn(`Empty payload received`);
+      logger.warn(`Empty payload received`);
       res.status(400).json({ error: "Empty payload" });
       return;
     }
@@ -75,14 +74,14 @@ export const handleWebhook = async (
     // console.log("indexingCategory", indexingCategory);
 
     if (!webhook.configuration.categories.includes(indexingCategory)) {
-      log.warn(`Event type not supported by configuration: ${eventType}`);
+      logger.warn(`Event type not supported by configuration: ${eventType}`);
       res.status(400).json({ error: "Event type not supported" });
       return;
     }
 
-    const credentials = webhook.configuration.user.databaseCredentials[0];
+    const credentials = webhook.configuration.credential;
     if (!credentials) {
-      log.warn(`No database credentials found for user: ${webhook.userId}`);
+      logger.warn(`No database credentials found for user: ${webhook.userId}`);
       res.status(400).json({ error: "No database credentials found" });
       return;
     }
@@ -120,7 +119,7 @@ export const handleWebhook = async (
 
     res.status(200).json({ success: true });
   } catch (error) {
-    log.error("Webhook processing failed:", error as Error);
+    logger.error("Webhook processing failed:", error as Error);
 
     await prisma.systemLog.create({
       data: {

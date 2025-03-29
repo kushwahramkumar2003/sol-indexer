@@ -1,4 +1,3 @@
-// config/index.ts
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -25,7 +24,6 @@ export const config = {
     `http://localhost:${process.env.PORT || "3000"}`,
 };
 
-// Validate required environment variables
 const requiredVars = [
   "KAFKA_BROKER",
   "ENCRYPTION_KEY",

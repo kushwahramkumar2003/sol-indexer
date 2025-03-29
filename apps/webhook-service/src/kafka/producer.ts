@@ -1,7 +1,7 @@
 import { Kafka, type Producer, type ProducerRecord } from "kafkajs";
 import fs from "fs";
 import { config } from "../config";
-import { log } from "../utils/logger";
+import { logger } from "../utils/logger";
 
 class KafkaProducer {
   private producer: Producer;
@@ -34,22 +34,22 @@ class KafkaProducer {
 
   async connect() {
     await this.producer.connect();
-    log.info("Kafka producer connected");
+    logger.info("Kafka producer connected");
   }
 
   async send(message: ProducerRecord) {
     try {
       await this.producer.send(message);
-      log.debug(`Message sent to ${message.topic}`);
+      logger.debug(`Message sent to ${message.topic}`);
     } catch (error) {
-      log.error("Error sending message to Kafka:", error as Error);
+      logger.error("Error sending message to Kafka:", error as Error);
       throw error;
     }
   }
 
   async disconnect() {
     await this.producer.disconnect();
-    log.info("Kafka producer disconnected");
+    logger.info("Kafka producer disconnected");
   }
 }
 
