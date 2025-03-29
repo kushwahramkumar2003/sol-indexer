@@ -180,7 +180,8 @@ export default function WebhooksPage() {
         throw new Error("Failed to fetch configurations");
       }
 
-      const configurationsData: IndexingConfiguration[] = res?.data?.data || [];
+      const configurationsData: IndexingConfiguration[] =
+        (res?.data?.data as unknown as IndexingConfiguration[]) || [];
       setConfigurations(configurationsData);
     } catch (error) {
       toast({
