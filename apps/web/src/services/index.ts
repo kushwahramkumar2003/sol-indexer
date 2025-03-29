@@ -1,8 +1,9 @@
 import axios from "axios";
 import { getToken } from "@/lib/localStorage";
+import { config } from "@/config";
 
 const apiConfig = {
-  baseURL: "http://localhost:8081/api/v1",
+  baseURL: config.api.url,
   withCredentials: true,
   headers: {},
 };
