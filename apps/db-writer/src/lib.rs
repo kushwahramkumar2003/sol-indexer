@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProcessedEvent {
-    #[serde(default = "generate_uuid")] // Default to a new UUID if missing
+    #[serde(default = "generate_uuid")] 
     pub id: String,
     #[serde(rename = "configId")]
     pub config_id: String,

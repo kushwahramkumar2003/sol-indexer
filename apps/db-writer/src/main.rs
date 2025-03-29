@@ -1,6 +1,6 @@
 use db_writer::{DatabaseCredential, DbPool, EventType, ProcessedEvent};
 use dotenv::dotenv;
-use log::{debug, error};
+use log::error;
 use rdkafka::config::ClientConfig;
 use rdkafka::consumer::{Consumer, StreamConsumer};
 use rdkafka::Message;
@@ -111,7 +111,7 @@ async fn process_messages(consumer: StreamConsumer, pools: Arc<Mutex<HashMap<Str
                     message.offset()
                 );
                 if let Some(payload) = message.payload() {
-                    debug!(
+                    println!(
                         "Message payload received: {:?}",
                         String::from_utf8_lossy(payload)
                     );
@@ -126,7 +126,7 @@ async fn process_messages(consumer: StreamConsumer, pools: Arc<Mutex<HashMap<Str
 
                             let pool = match pools_lock.get(&config_id) {
                                 Some(db_pool) => {
-                                    debug!(
+                                    println!(
                                         "Using existing database pool for config_id: {}",
                                         config_id
                                     );
@@ -182,7 +182,7 @@ async fn process_messages(consumer: StreamConsumer, pools: Arc<Mutex<HashMap<Str
                         Err(e) => error!("Failed to deserialize Kafka message: {}", e),
                     }
                 } else {
-                    debug!("Received empty message payload from Kafka");
+                    println!("Received empty message payload from Kafka");
                 }
             }
             Err(e) => error!("Kafka consumer error: {}", e),
@@ -248,7 +248,7 @@ async fn write_to_db(
             sqlx::Error::Decode(Box::new(e))
         })?
         .with_timezone(&chrono::Utc);
-    debug!("Parsed processed_at: {}", processed_at);
+    println!("Parsed processed_at: {}", processed_at);
 
     match event.event_type {
         EventType::NftBids => {
@@ -265,7 +265,7 @@ async fn write_to_db(
                 sqlx::Error::Decode("Missing nft_mint".into())
             })?;
 
-            debug!(
+            println!(
                 "Extracted NFT_BIDS fields - bid_amount: {}, bidder: {}, nft_mint: {}",
                 bid_amount, bidder, nft_mint
             );
@@ -302,7 +302,7 @@ async fn write_to_db(
                 sqlx::Error::Decode("Missing nftMint".into())
             })?;
 
-            debug!(
+            println!(
                 "Extracted NFT_PRICES fields - price: {}, marketplace: {}, nft_mint: {}",
                 price, marketplace, nft_mint
             );
@@ -342,7 +342,7 @@ async fn write_to_db(
                 sqlx::Error::Decode("Missing token_mint".into())
             })?;
 
-            debug!(
+            println!(
                 "Extracted TOKEN_BORROW fields - borrow_amount: {}, borrower: {}, token_mint: {}",
                 borrow_amount, borrower, token_mint
             );
@@ -382,7 +382,7 @@ async fn write_to_db(
                 sqlx::Error::Decode("Missing token_mint".into())
             })?;
 
-            debug!(
+            println!(
                 "Extracted TOKEN_PRICES fields - price: {}, currency_pair: {}, token_mint: {}",
                 price, currency_pair, token_mint
             );
@@ -420,7 +420,7 @@ async fn write_to_db(
                 sqlx::Error::Decode("Missing success".into())
             })?;
 
-            debug!(
+            println!(
                 "Extracted TRANSACTIONS fields - tx_hash: {}, block_number: {:?}, fee: {}, success: {}",
                 tx_hash, block_number, fee, success
             );
@@ -453,6 +453,6 @@ async fn write_to_db(
         }
     }
 
-    debug!("Event {} successfully written to database", event.id);
+    println!("Event {} successfully written to database", event.id);
     Ok(())
 }
