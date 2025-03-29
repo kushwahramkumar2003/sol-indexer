@@ -46,7 +46,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden custom-scrollbar">
       <MeteorEffect />
       <Navbar items={navItems} />
       <main>

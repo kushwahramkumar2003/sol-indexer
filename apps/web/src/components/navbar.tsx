@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { clearAuth, getAuth, isAuthenticated } from "@/lib/localStorage";
 
 interface NavItem {
   label: string;
@@ -40,17 +41,21 @@ interface NavItem {
 
 interface NavbarProps {
   variant?: "landing" | "dashboard";
-  user?: {
-    name: string;
-    email: string;
-    image?: string;
-  } | null;
   items?: NavItem[];
+}
+
+interface AuthData {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+  };
+  message?: string;
+  expiresAt: number;
 }
 
 export function Navbar({
   variant = "landing",
-  user = null,
   items = [
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
@@ -60,8 +65,17 @@ export function Navbar({
 }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [authData] = useState<AuthData | null>(getAuth());
 
   const isDashboard = variant === "dashboard";
+
+  useEffect(() => {
+    const authData = getAuth();
+    if (authData) {
+      console.log("User is authenticated");
+      console.log(authData);
+    }
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -169,7 +183,7 @@ export function Navbar({
             </Button>
           )}
 
-          {user ? (
+          {authData ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -177,12 +191,8 @@ export function Navbar({
                   className="relative h-8 w-8 rounded-full"
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.image || ""} alt={user.name} />
                     <AvatarFallback>
-                      {user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
+                      {authData.user.email.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -190,29 +200,38 @@ export function Navbar({
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user.name}
-                    </p>
+                    <p className="text-sm font-medium leading-none">User</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
+                      {authData.user.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    clearAuth();
+                    window.location.href = "/";
+                  }}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -302,7 +321,7 @@ export function Navbar({
                     ))}
                   </nav>
 
-                  {!user && (
+                  {!authData && (
                     <div className="mt-6 space-y-3">
                       <Link href="/login">
                         <Button variant="outline" className="w-full">

@@ -172,3 +172,33 @@
 .custom-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #454545;
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #333333 #1a1a1a;
+}
+
+/* Optional: Ensure smooth scrolling */
+.custom-scrollbar {
+  scroll-behavior: smooth;
+}
