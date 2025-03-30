@@ -1,84 +1,88 @@
-# Turborepo starter
+# Sol-Indexer
 
-This Turborepo starter is maintained by the Turborepo core team.
+A scalable, event-driven system for indexing Solana blockchain data, such as NFT sales and token prices, using a microservices architecture.
 
-## Using this example
+## Problem
 
-Run the following command:
+Indexing blockchain data, like NFT sales or token transactions on Solana, presents several challenges: real-time processing of high-volume events, ensuring data consistency across distributed systems, and maintaining scalability as transaction throughput grows. Traditional monolithic approaches struggle with these demands due to tight coupling, limited fault tolerance, and difficulty integrating diverse data sources (e.g., Helius APIs). Additionally, managing logs, configurations, and database migrations across multiple services becomes cumbersome without a standardized, reusable approach.
 
-```sh
-npx create-turbo@latest
+## Solution
+
+Sol-Indexer addresses these challenges with a microservices-based architecture leveraging Kafka for event streaming, PostgreSQL for persistent storage, and Bun/TypeScript for fast TypeScript execution, alongside Rust for performance-critical components. The system decouples data ingestion (`webhook-service`), processing (`data-processor`), and storage (`db-writer`), enabling independent scaling and fault isolation. A shared `@myrepo/logger` package provides consistent logging across services, while Corepack ensures reproducible dependency management. The web app, built with Next.js and ShadCN, offers a UI for visualizing indexed data, making the system both robust and user-friendly.
+
+## Architecture
+
+The architecture follows an event-driven pattern where blockchain events flow through distinct microservices. The `webhook-service` ingests raw events from Solana (e.g., via Helius webhooks) and publishes them to a Kafka topic (`webhook-events`). The `data-processor` consumes these events, parses them into structured data (e.g., NFT sales), and publishes processed events to another Kafka topic (`processed-events`). The `db-writer`, written in Rust for performance, consumes these processed events and persists them to PostgreSQL. The `auth-service` secures API endpoints, while the web app provides a frontend interface. A shared logger package ensures uniform logging across all services, enhancing observability.
+
+### Architecture Diagram
+
+Below is the architecture image you created :
+
+![Architecture Diagram](architecture.svg)
+
+_Caption: Diagram illustrating the flow of Solana events through microservices via Kafka, with data stored in PostgreSQL and visualized via a Next.js web app._
+
+## Setup Instructions
+
+### Prerequisites
+
+- **Node.js**: v18+
+- **Bun**: v1.2.5+ (for TypeScript microservices and web app)
+- **Rust**: v1.75+ (for `db-writer`)
+- **PostgreSQL**: v15+ (local or remote)
+- **Kafka**: v3.x (e.g., via a local installation or a managed service like Aiven)
+
+### Installation
+
+#### Clone the Repository:
+
+```bash
+git clone https://github.com/kushwahramkumar2003/sol-indexer
+cd sol-indexer
 ```
 
-## What's inside?
+#### Install Dependencies:
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
+```bash
+bun install
 ```
 
-### Develop
+#### Configure Environment Variables:
 
-To develop all apps and packages, run the following command:
+Replace `.env.example` with `.env` for each microservice and populate with your values:
 
-```
-cd my-turborepo
-pnpm dev
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+```bash
+cp apps/auth-service/.env.example apps/auth-service/.env
+cp apps/webhook-service/.env.example apps/webhook-service/.env
+cp apps/data-processor/.env.example apps/data-processor/.env
+cp apps/db-writer/.env.example apps/db-writer/.env
+cp apps/web/.env.example apps/web/.env
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+Example `.env` for `data-processor`:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+```ini
+KAFKA_BROKERS=localhost:9092
+KAFKA_CLIENT_ID=data-processor
+LOG_LEVEL=info
+```
+
+#### Set Up Kafka:
+
+Install Kafka locally or use a managed service (e.g., Aiven). Update `KAFKA_BROKERS` in `.env` files with your Kafka broker address.
+
+### Start Services
+
+#### Build and Run `db-writer` with Cargo:
+
+```bash
+cargo build
+```
+
+#### Access the Web App:
+
+Open `https://sol-indexer-web.vercel.app/`
 
 ```
-npx turbo link
+
 ```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
