@@ -16,11 +16,7 @@ The architecture follows an event-driven pattern where blockchain events flow th
 
 ### Architecture Diagram
 
-Below is the architecture image you created :
-
 ![Architecture Diagram](architecture.svg)
-
-_Caption: Diagram illustrating the flow of Solana events through microservices via Kafka, with data stored in PostgreSQL and visualized via a Next.js web app._
 
 ## Setup Instructions
 
