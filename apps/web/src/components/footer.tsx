@@ -9,7 +9,7 @@ export function Footer() {
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <Database className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">HeliusIndex</span>
+              <span className="font-bold text-xl">Sol-Indexer</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               Simplifying blockchain data indexing for developers.
@@ -66,7 +66,7 @@ export function Footer() {
         </div>
         <div className="border-t border-border/50 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground mb-4 md:mb-0">
-            © {new Date().getFullYear()} HeliusIndex. All rights reserved.
+            © {new Date().getFullYear()} Sol-Indexer. All rights reserved.
           </p>
           <div className="flex gap-4">
             <a

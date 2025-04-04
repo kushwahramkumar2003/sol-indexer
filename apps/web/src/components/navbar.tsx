@@ -111,7 +111,7 @@ export function Navbar({
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <Database className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">HeliusIndex</span>
+            <span className="font-bold text-xl">Sol-Indexer</span>
           </Link>
 
           {!isDashboard && (
@@ -265,7 +265,7 @@ export function Navbar({
                   <SheetTitle>
                     <div className="flex items-center gap-2">
                       <Database className="h-5 w-5 text-primary" />
-                      <span>HeliusIndex</span>
+                      <span>Sol-Indexer</span>
                     </div>
                   </SheetTitle>
                 </SheetHeader>

@@ -22,7 +22,7 @@ export function CTASection() {
             Ready to Simplify Your Blockchain Data Indexing?
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Join hundreds of developers who are already using HeliusIndex to
+            Join hundreds of developers who are already using Sol-Indexer to
             streamline their blockchain data workflows.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
