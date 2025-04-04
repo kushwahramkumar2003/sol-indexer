@@ -1035,7 +1035,7 @@ export function ConfigurationDialog({
                   </ol>
                   <Button variant="link" className="p-0 h-auto text-sm" asChild>
                     <a
-                      href="https://dev.helius.xyz/docs/webhooks"
+                      href="https://docs.helius.dev/data-streaming/webhooks"
                       target="_blank"
                       rel="noopener noreferrer"
                     >

@@ -483,7 +483,7 @@ export function WebhookDetailDialog({
                     </p>
                     <Button variant="outline" size="sm" asChild>
                       <a
-                        href="https://dev.helius.xyz/dashboard"
+                        href="https://dashboard.helius.dev/webhooks"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center"

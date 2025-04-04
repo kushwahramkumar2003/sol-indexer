@@ -667,7 +667,7 @@ export default function WebhooksPage() {
             </div>
             <Button variant="outline" size="sm" asChild>
               <a
-                href="https://dev.helius.xyz/docs/webhooks"
+                href="https://docs.helius.dev/data-streaming/webhooks"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center"
